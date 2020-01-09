@@ -110,6 +110,7 @@ public:
     QString m_knowledgebaseVersion;
     QString m_eventVersion;
     QString m_commentVersion;
+    QString m_registerUrl;
     PlatformDependent* m_internals;
 
     Private()
@@ -131,6 +132,7 @@ public:
         , m_knowledgebaseVersion(other.m_knowledgebaseVersion)
         , m_eventVersion(other.m_eventVersion)
         , m_commentVersion(other.m_commentVersion)
+        , m_registerUrl(other.m_registerUrl)
         , m_internals(other.m_internals)
     {
     }
@@ -138,7 +140,7 @@ public:
 Private(PlatformDependent* internals, const QUrl& baseUrl, const QString& name, const QUrl& icon,
         const QString& person, const QString& friendV, const QString& message, const QString& achievement,
         const QString& activity, const QString& content, const QString& fan, const QString& forum,
-        const QString& knowledgebase, const QString& event, const QString& comment)
+        const QString& knowledgebase, const QString& event, const QString& comment, const QString& registerUrl)
         : m_baseUrl(baseUrl), m_icon(icon), m_name(name)
         , m_personVersion(person)
         , m_friendVersion(friendV)
@@ -151,6 +153,7 @@ Private(PlatformDependent* internals, const QUrl& baseUrl, const QString& name, 
         , m_knowledgebaseVersion(knowledgebase)
         , m_eventVersion(event)
         , m_commentVersion(comment)
+        , m_registerUrl(registerUrl)
         , m_internals(internals)
     {
         if (m_baseUrl.isEmpty()) {
@@ -184,7 +187,17 @@ Provider::Provider(PlatformDependent* internals, const QUrl& baseUrl, const QStr
                    const QString& person, const QString& friendV, const QString& message, const QString& achievement,
                    const QString& activity, const QString& content, const QString& fan, const QString& forum,
                    const QString& knowledgebase, const QString& event, const QString& comment)
-    : d(new Private(internals, baseUrl, name, icon, person, friendV, message, achievement, activity, content, fan, forum, knowledgebase, event, comment))
+    : d(new Private(internals, baseUrl, name, icon, person, friendV, message, achievement, activity, content,
+                    fan, forum, knowledgebase, event, comment, QString()))
+{
+}
+
+Provider::Provider(PlatformDependent* internals, const QUrl& baseUrl, const QString& name, const QUrl& icon,
+                   const QString& person, const QString& friendV, const QString& message, const QString& achievement,
+                   const QString& activity, const QString& content, const QString& fan, const QString& forum,
+                   const QString& knowledgebase, const QString& event, const QString& comment, const QString& registerUrl)
+    : d(new Private(internals, baseUrl, name, icon, person, friendV, message, achievement, activity, content,
+                    fan, forum, knowledgebase, event, comment, registerUrl))
 {
 }
 
@@ -306,6 +319,10 @@ PostJob* Provider::registerAccount(const QString& id, const QString& password, c
     return new PostJob(d->m_internals, createRequest(QLatin1String( "person/add" )), postParameters);
 }
 
+const QString& Provider::getRegisterAccountUrl() const
+{
+    return d->m_registerUrl;
+}
 
 ItemJob<Person>* Provider::requestPerson(const QString& id)
 {
@@ -1532,24 +1549,16 @@ ItemJob<PrivateData>* Provider::requestPrivateData(const QString& app, const QSt
 QUrl Provider::createUrl(const QString& path)
 {
     QUrl url(d->m_baseUrl.toString() + path);
-    if (!d->m_credentialsUserName.isEmpty()) {
-        url.setUserName(d->m_credentialsUserName);
-        url.setPassword(d->m_credentialsPassword);
-    }
     return url;
 }
 
 QNetworkRequest Provider::createRequest(const QUrl& url)
 {
     QNetworkRequest request(url);
-    //qDebug() << "OCS Request:" << url;
     if (!d->m_credentialsUserName.isEmpty()) {
-        QString concatenated = d->m_credentialsUserName + QLatin1Char( ':' ) + d->m_credentialsPassword;
-        QByteArray data = concatenated.toLocal8Bit().toBase64();
-        QString headerData = QLatin1String( "Basic " ) +QLatin1String( data );
-        request.setRawHeader("Authorization" ,headerData.toLocal8Bit() );
+        request.setAttribute((QNetworkRequest::Attribute) BaseJob::UserAttribute, QVariant(d->m_credentialsUserName));
+        request.setAttribute((QNetworkRequest::Attribute) BaseJob::PasswordAttribute, QVariant(d->m_credentialsPassword));
     }
-
     return request;
 }
 

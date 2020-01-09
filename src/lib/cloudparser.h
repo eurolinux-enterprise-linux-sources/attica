@@ -1,7 +1,7 @@
 /*
     This file is part of KDE.
 
-    Copyright 2010 Sebastian Kügler <sebas@kde.org>
+    Copyright (c) 2012 Laszlo Papp <lpapp@kde.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -21,14 +21,23 @@
 
 */
 
-#include <QApplication>
-#include "projecttest.h"
+#ifndef ATTICA_CLOUDPARSER_H
+#define ATTICA_CLOUDPARSER_H
+
+#include "cloud.h"
+#include "parser.h"
 
 
-int main(int argc, char** argv)
+namespace Attica {
+
+class Cloud::Parser : public Attica::Parser<Cloud>
 {
-    QApplication app(argc, argv);
-    ProjectTest foo;
-    foo.show();
-    return app.exec();
+private:
+    Cloud parseXml(QXmlStreamReader& xml);
+    QStringList xmlElement() const;
+};
+
 }
+
+
+#endif

@@ -1,15 +1,14 @@
 
 Name:           attica
-Version:        0.4.1
-Release:        4%{?dist}
+Version:        0.4.2
+Release:        1%{?dist}
 Summary:        Implementation of the Open Collaboration Services API
 
-Group:          Development/Libraries
 License:        LGPLv2+
 URL:            http://www.kde.org
 Source0:        http://download.kde.org/stable/attica/attica-%{version}.tar.bz2
 
-BuildRequires:  cmake
+BuildRequires:  cmake >= 2.8
 BuildRequires:  pkgconfig(QtNetwork) >= 4.7
 
 %description
@@ -18,7 +17,6 @@ API version 1.4.
 
 %package        devel
 Summary:        Development files for %{name}
-Group:          Development/Libraries
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 %description    devel
 %{summary}.
@@ -62,6 +60,9 @@ test "$(pkg-config --modversion libattica)" = "%{version}"
 
 
 %changelog
+* Mon May 25 2015 Jan Grulich <jgrulich@redhat.com> - 0.4.2-1
+- Re-base to 0.4.2 (sync with F21)
+
 * Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 0.4.1-4
 - Mass rebuild 2014-01-24
 

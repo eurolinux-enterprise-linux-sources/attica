@@ -1,28 +1,9 @@
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(LIB_SUFFIX "" CACHE STRING "Define suffix of directory name (32/64)" )
-set(LIB_DESTINATION "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}" CACHE STRING "Library directory name" FORCE)
-
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH  TRUE)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/ ${CMAKE_MODULE_PATH})
-
-set(QT_MIN_VERSION "4.7.0")
-find_package(Qt5Transitional REQUIRED
-    Core
-    Network
-    Test
-)
-
-# TODO: Remove me once fixed in ECM module
-if(Qt5Core_FOUND)
-  # Avoid errors and build in PIC mode:
-  # qt5/qtbase/include/QtCore/qglobal.h:1765:4: error:
-  #   #error "You must build your code with position independent code if Qt was
-  #   built with -reduce-relocations. " "Compile your code with -fPIC or -fPIE."
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-endif()
 
 include_directories( ${QT_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR} )
 
@@ -122,6 +103,11 @@ else (ATTICA_STATIC_BUILD)
         DEFINE_SYMBOL ATTICA_LIB_MAKEDLL
     )
 endif(ATTICA_STATIC_BUILD)
+
+if(Qt5Core_FOUND)
+  set_property(TARGET attica APPEND PROPERTY COMPILE_DEFINITIONS QT_DISABLE_DEPRECATED_BEFORE=0)
+endif()
+
 target_link_libraries(attica ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY})
 
 
@@ -189,6 +175,11 @@ endif(NOT WIN32)
 
 # Add the optional subdirectory with unit tests
 if (ATTICA_ENABLE_TESTS)
+    if(Qt5Core_FOUND)
+        find_package(Qt5Transitional REQUIRED
+            Test
+        )
+    endif()
     add_subdirectory(tests)
 endif (ATTICA_ENABLE_TESTS)
 
